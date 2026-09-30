@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TheMetaxAi — Ask Anything • Create Anything • Edit Anything</title>
+<!-- ============ CSS ============ -->
+<style>
+:root{--bg:#000;--bg2:#0b0b0b;--card:rgba(255,255,255,.045);--bd:rgba(212,175,55,.22);--tx:#f5f1e6;--mu:#9c968a;--gold:#d4af37;--gold2:#f3d77a;--r:16px;--head:Georgia,"Times New Roman",serif;--body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+:root[data-theme=light]{--bg:#faf8f3;--bg2:#fff;--card:rgba(0,0,0,.04);--bd:rgba(150,115,10,.3);--tx:#161616;--mu:#6b665b;--gold:#a67c00;--gold2:#7a5a00}
+*{box-sizing:border-box;margin:0}html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font:15px/1.5 var(--body);display:flex;overflow:hidden}
+h1,h2,h3{font-family:var(--head);font-weight:600;letter-spacing:.2px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* sidebar */
+#sb{width:250px;flex:none;background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;padding:18px 12px;transition:transform .25s;z-index:20;overflow:auto}
+.brand{padding:4px 10px 14px}.brand h1{font-size:26px;color:var(--gold);letter-spacing:3px}.brand p{font-size:11px;color:var(--mu)}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:var(--mu);cursor:pointer;border:0;background:none;width:100%;text-align:left}
+.nav:hover{background:var(--card);color:var(--tx)}.nav.on{background:linear-gradient(90deg,rgba(212,175,55,.22),transparent);color:var(--gold2)}
+/* main */
+main{flex:1;display:flex;flex-direction:column;min-width:0;height:100%}
+#top{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--bd)}
+#top h2{flex:1;font-size:20px}
+#burger{display:none}
+.view{display:none;flex:1;overflow:auto;padding:22px}.view.on{display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;backdrop-filter:blur(10px)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.btn{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#111;border:0;border-radius:999px;padding:9px 18px;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}.btn.g{background:none;color:var(--tx);border:1px solid var(--bd)}.btn.g:hover{border-color:var(--gold)}.btn.sm{padding:5px 12px;font-size:13px}
+input,select,textarea{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:9px 12px;width:100%}
+textarea{resize:vertical;min-height:80px}label{font-size:12px;color:var(--mu);display:block;margin:10px 0 4px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:0 0 auto}.row>.f{flex:1 1 160px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.note{border:1px dashed var(--gold);border-radius:12px;padding:10px 14px;color:var(--gold2);font-size:13px;margin:10px 0}
+.stat{font:600 34px var(--head);color:var(--gold)}.mu{color:var(--mu);font-size:13px}
+.tool{cursor:pointer;transition:transform .15s,border-color .15s}.tool:hover{transform:translateY(-2px);border-color:var(--gold)}
+.ico{font-size:24px}
+/* chat */
+#v-dash{padding:0;display:none;flex-direction:column}#v-dash.on{display:flex}#v-dash .dash-space{flex:1;min-height:0}\n#v-chat{padding:0}#v-chat.on{display:flex}
+#cl{width:250px;flex:none;border-right:1px solid var(--bd);padding:12px;overflow:auto}
+.ci{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:14px}.ci:hover,.ci.on{background:var(--card)}.ci.on{border-left:2px solid var(--gold)}
+.ci span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.ci button{background:none;border:0;cursor:pointer;opacity:.6}
+#cm{flex:1;display:flex;flex-direction:column;min-width:0}
+#msgs{flex:1;overflow:auto;padding:20px}
+.m{max-width:820px;margin:0 auto 16px;padding:12px 16px;border-radius:var(--r);word-wrap:break-word}
+.m.u{background:rgba(212,175,55,.12);border:1px solid var(--bd)}.m.a{background:var(--card)}
+.m .who{font-size:12px;color:var(--gold);margin-bottom:4px}.m .act{margin-top:8px;display:flex;gap:6px}
+.m .act button{background:none;border:1px solid var(--bd);border-radius:8px;font-size:12px;padding:2px 8px;cursor:pointer;color:var(--mu)}
+pre{background:#0a0a0a;color:#eee;border:1px solid var(--bd);border-radius:12px;padding:12px;overflow:auto;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;margin:8px 0}
+code{font-family:ui-monospace,Menlo,Consolas,monospace}.k{color:#f3d77a}.s{color:#8fd694}.c{color:#777}.ic{background:rgba(212,175,55,.15);padding:1px 5px;border-radius:5px}
+#comp{padding:12px 20px;border-top:1px solid var(--bd)}
+#dash-compose{flex:none;padding:14px 20px 20px}
+#dash-compose .dash-in{max-width:820px;margin:auto;position:relative}
+#dash-compose .dash-box{display:flex;align-items:flex-end;gap:8px;background:var(--bg2);border:1px solid var(--bd);border-radius:22px;padding:8px 9px 8px 8px;box-shadow:0 8px 30px rgba(0,0,0,.22)}
+#dash-compose textarea{border:0;background:transparent;box-shadow:none;resize:none;min-height:42px;max-height:140px;padding:9px 6px;flex:1}
+#dash-compose textarea:focus{outline:none}
+#dash-plus{width:34px;height:34px;padding:0;border-radius:50%;font-size:21px;line-height:1;display:grid;place-items:center;flex:none}
+#dash-mic{width:34px;height:34px;padding:0;border-radius:50%;font-size:16px;display:grid;place-items:center;flex:none}
+#dash-send{width:36px;height:36px;padding:0;border-radius:50%;font-size:16px;display:grid;place-items:center;flex:none}
+#dash-menu{position:absolute;left:0;bottom:58px;display:none;background:var(--bg2);border:1px solid var(--bd);border-radius:14px;padding:6px;box-shadow:0 12px 35px rgba(0,0,0,.45);min-width:210px;z-index:10}
+#dash-menu.open{display:block}
+#dash-menu .dash-choice{display:block;width:100%;margin:0;border:0;background:none;color:var(--tx);text-align:left;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:14px}
+#dash-menu .dash-choice:hover{background:var(--card);color:var(--gold2)}
+#dash-menu .dash-choice input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+#comp .in{max-width:820px;margin:auto}
+/* editors */
+canvas,video{max-width:100%;border-radius:12px;background:#000;border:1px solid var(--bd)}
+.stage{overflow:auto;max-height:60vh;text-align:center;padding:8px}
+input[type=range]{padding:0;accent-color:var(--gold)}
+.up{border:2px dashed var(--bd);border-radius:var(--r);padding:26px;text-align:center;cursor:pointer;color:var(--mu)}.up:hover{border-color:var(--gold)}
+.bar{height:8px;background:var(--card);border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .3s}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:12px}.gal img{width:100%;border-radius:12px;border:1px solid var(--bd)}
+iframe{width:100%;height:280px;border:1px solid var(--bd);border-radius:12px;background:#fff}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--gold);color:#111;padding:9px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:99;max-width:90vw}#toast.on{opacity:1}
+.out{white-space:pre-wrap;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:12px;min-height:80px;margin-top:10px}
+@media(max-width:860px){#sb{position:fixed;inset:0 auto 0 0;transform:translateX(-100%);box-shadow:0 0 40px #000}#sb.open{transform:none}#burger{display:inline-block}.two{grid-template-columns:1fr}#cl{display:none;position:absolute;z-index:5;background:var(--bg2);height:100%}#cl.open{display:block}#v-chat{position:relative}.view{padding:14px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<!-- ============ SIDEBAR ============ -->
+<aside id="sb" aria-label="Main navigation">
+  <div class="brand"><h1>TheMetaxAi</h1><p>Ask Anything • Create Anything • Edit Anything</p></div>
+  <div id="nav"></div>
+</aside>
+
+<main>
+  <div id="top">
+    <button id="burger" class="btn g sm" aria-label="Open menu">☰</button>
+    <h2 id="title">Dashboard</h2>
+    <button id="theme" class="btn g sm" title="Toggle light/dark">◐</button>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="view on" id="v-dash">
+    <div class="dash-space"></div>
+    <div id="dash-compose">
+      <div class="dash-in">
+        <div id="dash-menu" aria-label="Add attachment">
+          <label class="dash-choice">🖼️ Photos / Gallery<input id="dash-photo-input" type="file" accept="image/*"></label>
+          <label class="dash-choice">🎬 Videos / Gallery<input id="dash-video-input" type="file" accept="video/*"></label>
+          <label class="dash-choice">📷 Take Photo<input id="dash-camera-input" type="file" accept="image/*" capture="environment"></label>
+          <label class="dash-choice">🎥 Record Video<input id="dash-camvideo-input" type="file" accept="video/*" capture="environment"></label>
+          <label class="dash-choice">📄 Documents / Files<input id="dash-document-input" type="file" accept="*/*"></label>
+        </div>
+        <div class="dash-box">
+          <button id="dash-plus" class="btn g" type="button" title="Add attachment" aria-label="Add attachment">+</button>
+          <textarea id="dash-input" rows="1" placeholder="Message TheMetaxAi…" maxlength="8000" aria-label="Message TheMetaxAi"></textarea>
+          <button id="dash-mic" class="btn g" type="button" title="Voice input" aria-label="Voice input">🎤</button>
+          <button id="dash-send" class="btn" type="button" title="Send" aria-label="Send">↑</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHAT ============ -->
+  <section class="view" id="v-chat">
+    <div id="cl">
+      <button class="btn" style="width:100%" id="newChat">+ New chat</button>
+      <input id="cs" placeholder="Search chats" style="margin:10px 0" aria-label="Search chats">
+      <div id="clist"></div>
+    </div>
+    <div id="cm">
+      <div class="row" style="padding:8px 20px;border-bottom:1px solid var(--bd)">
+        <button class="btn g sm" id="hist">History</button><b class="f" id="ctitle">New chat</b>
+        <button class="btn g sm" id="ren">Rename</button><button class="btn g sm" id="clr">Clear</button><button class="btn g sm" id="exp">Export</button>
+      </div>
+      <div id="msgs"></div>
+      <div id="comp"><div class="in">
+        <div class="mu" id="att"></div>
+        <textarea id="ci" rows="2" placeholder="Ask anything…" maxlength="8000"></textarea>
+        <div class="row" style="margin-top:8px">
+          <label class="btn g sm" style="margin:0;cursor:pointer">📎 File<input type="file" id="cf" hidden accept=".txt,.csv,.json,.md,.pdf,.docx"></label>
+          <label class="btn g sm" style="margin:0;cursor:pointer">🖼 Image<input type="file" id="cimg" hidden accept="image/*"></label>
+          <button class="btn g sm" id="mic">🎤 Voice</button><span class="f"></span><button class="btn" id="send">Send</button>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ============ IMAGE GENERATOR ============ -->
+  <section class="view" id="v-img">
+    <div class="note">Image generation needs a backend. Add your endpoint under API Settings — nothing is generated until it is connected.</div>
+    <div class="two"><div class="card">
+      <label>Prompt</label><textarea id="ip" placeholder="Create a luxury black and gold product advertisement."></textarea>
+      <label>Negative prompt</label><input id="ineg" placeholder="blurry, low quality, watermark">
+      <div class="row"><div class="f"><label>Style</label><select id="ist"></select></div>
+      <div class="f"><label>Aspect ratio</label><select id="iar"><option>1:1</option><option>16:9</option><option>9:16</option><option>4:5</option><option>3:2</option></select></div></div>
+      <div class="row"><div class="f"><label>Size</label><select id="isz"><option>512</option><option selected>1024</option><option>2048</option></select></div>
+      <div class="f"><label>Images</label><select id="in"><option>1</option><option>2</option><option>4</option></select></div></div>
+      <div class="row" style="margin-top:14px"><button class="btn" id="igen">Generate</button><button class="btn g" id="iregen">Regenerate</button></div>
+      <div class="bar" style="margin-top:12px"><i id="ibar"></i></div><div class="mu" id="imsg"></div>
+    </div>
+    <div class="card"><h3>Gallery</h3><div class="gal" id="gal"></div><div class="mu" id="galn">No images yet.</div></div></div>
+  </section>
+
+  <!-- ============ IMAGE EDITOR ============ -->
+  <section class="view" id="v-edit">
+    <div class="two" style="grid-template-columns:2fr 1fr">
+      <div class="card">
+        <label class="up" style="display:block" id="eup">Click to upload an image (PNG, JPG, WebP · max 15 MB)<input type="file" id="ef" accept="image/png,image/jpeg,image/webp" hidden></label>
+        <div class="row" style="margin:10px 0">
+          <button class="btn g sm" id="eundo">Undo</button><button class="btn g sm" id="eredo">Redo</button><button class="btn g sm" id="ereset">Reset</button>
+          <button class="btn g sm" id="ebefore">Before/After (hold)</button>
+          <span class="mu">Zoom</span><input type="range" id="ezoom" min="20" max="300" value="100" style="width:110px">
+          <button class="btn sm" id="edl">Download</button><button class="btn g sm" id="esave">Save</button>
+        </div>
+        <div class="stage"><canvas id="cv" width="600" height="380"></canvas></div>
+      </div>
+      <div class="card" style="overflow:auto;max-height:78vh">
+        <h3>Adjust</h3><div id="sl"></div>
+        <div class="row" style="margin-top:8px"><button class="btn g sm" data-t="rot">⟳ Rotate</button><button class="btn g sm" data-t="fh">⇋ Flip H</button><button class="btn g sm" data-t="fv">⇵ Flip V</button></div>
+        <label>Effect</label><select id="efx"><option value="">None</option><option value="grayscale(1)">Black &amp; white</option><option value="sepia(.8)">Sepia</option><option value="invert(1)">Invert</option><option value="hue-rotate(40deg) saturate(1.3)">Warm gold</option></select>
+        <label>Resize (% of original)</label><input type="range" id="esc" min="10" max="200" value="100">
+        <label>Text</label><input id="etx" placeholder="Add text"><label>Watermark</label><input id="ewm" placeholder="© TheMetaxAi">
+        <label>Logo</label><input type="file" id="elogo" accept="image/*">
+        <h3 style="margin-top:16px">AI operations</h3><div class="mu">Sent to your image-editing API.</div>
+        <div class="row" id="eai" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIDEO EDITOR ============ -->
+  <section class="view" id="v-vid">
+    <div class="two"><div class="card">
+      <label class="up" style="display:block">Upload a video (MP4, WebM, MOV · max 500 MB)<input type="file" id="vf" accept="video/*" hidden></label>
+      <video id="vp" controls style="width:100%;margin-top:10px"></video>
+      <div class="mu" style="margin-top:8px">Timeline</div>
+      <div class="row"><span class="mu">In</span><input type="range" id="vin" min="0" max="100" value="0" step=".1" class="f"><span class="mu">Out</span><input type="range" id="vout" min="0" max="100" value="100" step=".1" class="f"></div>
+      <div class="mu" id="vtl">Load a video to set trim points.</div>
+      <div class="row" style="margin-top:8px"><button class="btn g sm" id="vprev">Preview trim</button><button class="btn g sm" id="vframe">Capture frame / thumbnail</button>
+      <select id="vspd"><option>0.5</option><option selected>1</option><option>1.5</option><option>2</option></select><span class="mu">speed (preview)</span></div>
+      <div class="note" id="vinfo">No video loaded.</div>
+    </div>
+    <div class="card"><h3>Output settings</h3>
+      <div class="row"><div class="f"><label>Resolution</label><select id="vres"><option>360p</option><option>480p</option><option selected>720p</option><option>1080p</option><option>1440p</option><option>4K</option></select></div>
+      <div class="f"><label>Aspect ratio</label><select id="var"><option>16:9</option><option>9:16</option><option>1:1</option><option>4:5</option></select></div>
+      <div class="f"><label>Format</label><select id="vfmt"><option>mp4</option><option>webm</option><option>mov</option></select></div></div>
+      <label>Overlay text / watermark</label><input id="vtxt" placeholder="Text or watermark">
+      <h3 style="margin-top:14px">Processing (backend)</h3><div class="mu">Encoding, merging and AI features run on your video API.</div>
+      <div class="row" id="vops" style="margin-top:8px"></div>
+      <div class="bar" style="margin-top:12px"><i id="vbar"></i></div><div class="mu" id="vmsg"></div>
+      <div class="row" style="margin-top:8px"><a class="btn sm" id="vdl" style="display:none;text-decoration:none">Download output</a></div>
+    </div></div>
+  </section>
+
+  <!-- ============ CODING ASSISTANT ============ -->
+  <section class="view" id="v-code">
+    <div class="row"><div class="f"><label>Language</label><select id="clang"></select></div><div class="f"><label>Task</label><select id="cact"></select></div><div class="f"><label>Convert to (if converting)</label><select id="cto"></select></div></div>
+    <label>Code</label><textarea id="ccode" spellcheck="false" style="min-height:240px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px" placeholder="Paste code here, or describe what to build…"></textarea>
+    <label>Instructions</label><input id="cins" placeholder="e.g. Create a responsive landing page">
+    <div class="row" style="margin:12px 0"><button class="btn" id="crun">Run task</button><button class="btn g" id="cprev">Preview HTML</button><button class="btn g" id="ccopy">Copy code</button><button class="btn g" id="cdl">Download code</button></div>
+    <div class="mu">Code is never run automatically. The preview is sandboxed and starts only when you click Preview.</div>
+    <div class="out" id="cout">AI output appears here.</div>
+    <iframe id="cframe" sandbox="allow-scripts" style="display:none;margin-top:10px" title="Preview"></iframe>
+  </section>
+
+  <!-- ============ FILE ANALYZER ============ -->
+  <section class="view" id="v-file">
+    <div class="two"><div class="card">
+      <label class="up" style="display:block">Upload TXT, CSV, JSON, image, PDF or DOCX (max 10 MB)<input type="file" id="ff" accept=".txt,.csv,.json,.md,.pdf,.docx,image/*" hidden></label>
+      <div class="note" id="finfo">No file loaded.</div>
+      <label>Search inside file</label><div class="row"><input id="fq" class="f" placeholder="Search text"><button class="btn g sm" id="fsr">Search</button></div>
+      <label>Ask a question</label><textarea id="fask" style="min-height:60px"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn sm" data-f="ask">Ask</button><button class="btn g sm" data-f="summarize">Summarize</button><button class="btn g sm" data-f="extract">Extract info</button><button class="btn g sm" data-f="analyze">Analyze</button></div>
+    </div>
+    <div class="card"><h3>Results</h3><div class="out" id="fout">Results appear here.</div>
+      <div class="row" style="margin-top:8px"><button class="btn g sm" id="fcopy">Copy</button><button class="btn g sm" id="fdl">Download</button></div></div></div>
+  </section>
+
+  <!-- ============ GENERIC TEXT TOOL (Writer / Translator / Summarizer) ============ -->
+  <section class="view" id="v-gen">
+    <div class="card" style="max-width:820px"><h3 id="gtitle"></h3>
+      <div id="gextra"></div><label>Your text</label><textarea id="gin" style="min-height:160px"></textarea>
+      <div class="row" style="margin-top:10px"><button class="btn" id="grun">Run</button><button class="btn g" id="gcopy">Copy</button><button class="btn g" id="gdl">Download</button></div>
+      <div class="out" id="gout">Output appears here.</div></div>
+  </section>
+
+  <!-- ============ AI TOOLS ============ -->
+  <section class="view" id="v-tools"><div class="grid" id="tg"></div></section>
+
+  <!-- ============ API SETTINGS ============ -->
+  <section class="view" id="v-set">
+    <div class="card" style="max-width:720px"><h3>API connection panel</h3>
+      <div class="note">Point each feature at your own backend. Keep private API keys on your server — never in this file or in localStorage. Endpoints receive JSON via POST (video: multipart form).</div>
+      <div id="apif"></div>
+      <div class="row" style="margin-top:14px"><button class="btn" id="asave">Save endpoints</button><button class="btn g" id="aclear">Clear all local data</button></div>
+      <div class="mu" style="margin-top:12px">Expected replies — chat/file: <code>{"reply":"…"}</code> · image: <code>{"images":["https://…"]}</code> · edit: <code>{"image":"https://…"}</code> · video: <code>{"url":"https://…"}</code></div>
+    </div>
+  </section>
+</main>
+<div id="toast" role="status"></div>
+
+<!-- ============ JAVASCRIPT ============ -->
+<script>
+"use strict";
+/* ---------- helpers & storage ---------- */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const uid=()=>Math.random().toString(36).slice(2,10);
+const KEY="themetaxai.v1";
+const API_DEFAULTS={chat:"/api/chat",image:"/api/image",edit:"/api/edit",video:"/api/video",file:"/api/file"};
+let S={chats:[],cur:null,gallery:[],prompts:[],files:[],videos:[],projects:0,favs:["Chat","Image Generator"],theme:"dark",api:{...API_DEFAULTS}};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+S.api=Object.assign({...API_DEFAULTS},S.api||{});
+Object.keys(API_DEFAULTS).forEach(k=>{if(!S.api[k]||/^YOUR_/.test(S.api[k]))S.api[k]=API_DEFAULTS[k]});
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast("Storage is full — delete some items.")}};
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),2600)}
+function dl(name,data,type="text/plain"){const a=document.createElement("a");a.href=data instanceof Blob||typeof data!=="string"||!data.startsWith("data:")?URL.createObjectURL(data instanceof Blob?data:new Blob([data],{type})):data;a.download=name;a.click()}
+const copy=t=>navigator.clipboard.writeText(t).then(()=>toast("Copied"),()=>toast("Copy failed"));
+function okFile(f,max,re){if(!f)return false;if(f.size>max*1048576){toast("File too large (max "+max+" MB)");return false}if(re&&!re.test(f.name+" "+f.type)){toast("Unsupported file type");return false}return true}
+
+/* ---------- API layer (frontend ↔ backend boundary) ---------- */
+async function api(kind,payload,form){
+  const u=S.api[kind];
+  if(!u||/YOUR_/.test(u))throw new Error("NOT_CONNECTED");
+  const r=await fetch(u,form?{method:"POST",body:payload}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  if(!r.ok){let msg="Server returned "+r.status;try{const j=await r.json();if(j.error)msg=j.error}catch(_){}throw new Error(msg)}
+  return r.json();
+}
+const apiErr=(e,label)=>e.message==="NOT_CONNECTED"?`⚠ ${label} API is not connected. Add your endpoint under API Settings.`:`⚠ ${label} request failed: ${e.message}`;
+
+/* ---------- navigation ---------- */
+const NAV=[["dash","▦","Dashboard"],["chat","💬","Messages"],["img","✦","Image Generator"],["edit","◧","Image Editor"],["vid","▶","Video Editor"],["code","</>","Coding Assistant"],["file","▤","File Analyzer"],["tools","⊞","AI Tools"],["set","⚙","API Settings"]];
+$("#nav").innerHTML=NAV.map(n=>`<button class="nav" data-v="${n[0]}"><span>${n[1]}</span>${n[2]}</button>`).join("");
+function show(v){
+  $$(".view").forEach(e=>e.classList.toggle("on",e.id==="v-"+v));
+  $$(".nav").forEach(e=>e.classList.toggle("on",e.dataset.v===v));
+  const n=NAV.find(x=>x[0]===v);$("#title").textContent=n?n[2]:"TheMetaxAi";
+  $("#sb").classList.remove("open");if(v==="dash")dash();if(v==="chat")renderChat();if(v==="img")gal();
+}
+$("#nav").onclick=e=>{const b=e.target.closest(".nav");if(b)show(b.dataset.v)};
+$("#burger").onclick=()=>$("#sb").classList.toggle("open");
+$("#theme").onclick=()=>{S.theme=S.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=S.theme;save()};
+document.documentElement.dataset.theme=S.theme;
+
+/* ---------- dashboard & tools ---------- */
+const TOOLS=[["Chat","💬","chat"],["AI Writer","✍","gen","Write: "],["AI Translator","🌐","gen","Translate to the language named below: "],["AI Summarizer","≡","gen","Summarize: "],["Image Generator","✦","img"],["Image Editor","◧","edit"],["Background Remover","✂","edit"],["Image Enhancer","☀","edit"],["Image Upscaler","⤢","edit"],["Video Editor","▶","vid"],["Video Compressor","▣","vid"],["Subtitle Generator","CC","vid"],["Caption Generator","Aa","vid"],["Logo Generator","◆","img","Logo"],["Poster Generator","▭","img","Poster"],["Product Photo Generator","📦","img","Product photography"],["Code Generator","</>","code","Generate"],["Code Debugger","🐞","code","Debug"],["File Analyzer","▤","file"]];
+function openTool(n){
+  const t=TOOLS.find(x=>x[0]===n);if(!t)return;
+  if(t[2]==="gen"){$("#gtitle").textContent=t[0];$("#gin").dataset.pre=t[3];$("#gextra").innerHTML=t[0]==="AI Translator"?'<label>Target language</label><input id="glang" value="English">':"";$("#gout").textContent="Output appears here."}
+  if(t[2]==="img"&&t[3])$("#ist").value=t[3];
+  if(t[2]==="code"&&t[3])$("#cact").value=t[3];
+  show(t[2]);
+}
+function tools(){$("#tg").innerHTML=TOOLS.map(t=>`<div class="card tool" data-t="${esc(t[0])}"><div class="row"><span class="ico">${t[1]}</span><b class="f">${t[0]}</b><button class="btn g sm" data-fav="${esc(t[0])}">${S.favs.includes(t[0])?"★":"☆"}</button></div></div>`).join("")}
+$("#tg").onclick=e=>{const f=e.target.closest("[data-fav]");if(f){const n=f.dataset.fav;S.favs=S.favs.includes(n)?S.favs.filter(x=>x!==n):[...S.favs,n];save();tools();return}const c=e.target.closest("[data-t]");if(c)openTool(c.dataset.t)};
+function dash(){
+  // Clean dashboard by design; the message bar stays anchored at the bottom.
+}
+$("#qa").onclick=e=>{const c=e.target.closest("[data-go]");if(c)show(c.dataset.go)};
+
+$("#dash-plus").onclick=e=>{e.stopPropagation();$("#dash-menu").classList.toggle("open")};
+["#dash-photo-input","#dash-video-input","#dash-camera-input","#dash-camvideo-input","#dash-document-input"].forEach((id)=>{
+  $(id).onchange=e=>{const f=e.target.files&&e.target.files[0];if(f)attach(f,/image\//i.test(f.type));e.target.value=""};
+});
+$("#dash-menu").onclick=e=>e.stopPropagation();
+$("#dash-send").onclick=async()=>{
+  const t=$("#dash-input").value.trim();
+  if(!t)return;
+  if(!cur())newChat();
+  $("#ci").value=t;
+  $("#dash-input").value="";
+  show("chat");
+  await send();
+};
+$("#dash-mic").onclick=()=>{
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return toast("Voice input is not supported in this browser");
+  const r=new R();r.lang="en-US";r.interimResults=false;r.maxAlternatives=1;
+  r.onresult=e=>{$("#dash-input").value+=e.results[0][0].transcript};
+  r.onerror=()=>toast("Voice input failed");r.onend=()=>$("#dash-mic").classList.remove("on");
+  $("#dash-mic").classList.add("on");r.start();toast("Listening…");
+}; $("#dash-input").onkeydown=e=>{
+  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#dash-send").click()}
+};
+document.addEventListener("click",e=>{
+  if(!e.target.closest("#dash-compose"))$("#dash-menu").classList.remove("open");
+});
+
+/* ---------- chat ---------- */
+let pend=[],editIdx=null;
+const cur=()=>S.chats.find(c=>c.id===S.cur);
+function newChat(){const c={id:uid(),title:"New chat",msgs:[]};S.chats.unshift(c);S.cur=c.id;save();renderChat()}
+function fmt(t){ // escape first, then format code blocks with light syntax highlighting
+  let h=esc(t);
+  h=h.replace(/```(\w*)\n?([\s\S]*?)```/g,(m,l,c)=>`<pre><code>${hl(c)}</code></pre>`);
+  return h.replace(/`([^`\n]+)`/g,'<span class="ic">$1</span>').replace(/\n/g,"<br>").replace(/<pre>[\s\S]*?<\/pre>/g,m=>m.replace(/<br>/g,"\n"));
+}
+function hl(c){return c.replace(/(\/\/.*|#.*)|("[^"\n]*"|'[^'\n]*')|\b(function|const|let|var|return|if|else|for|while|class|import|from|def|print|public|static|void|int|new|try|catch|SELECT|FROM|WHERE)\b/g,(m,a,b,k)=>a?`<span class="c">${a}</span>`:b?`<span class="s">${b}</span>`:`<span class="k">${k}</span>`)}
+function renderList(){
+  const q=$("#cs").value.toLowerCase();
+  $("#clist").innerHTML=S.chats.filter(c=>c.title.toLowerCase().includes(q)).map(c=>`<div class="ci ${c.id===S.cur?"on":""}" data-id="${c.id}"><span>${esc(c.title)}</span><button data-del="${c.id}" title="Delete chat">🗑</button></div>`).join("")||'<div class="mu">No chats found.</div>';
+}
+function renderChat(){
+  if(!cur()){if(S.chats.length)S.cur=S.chats[0].id;else return newChat()}
+  const c=cur();$("#ctitle").textContent=c.title;renderList();
+  $("#msgs").innerHTML=c.msgs.length?c.msgs.map((m,i)=>`<div class="m ${m.r==="user"?"u":"a"}"><div class="who">${m.r==="user"?"You":"TheMetaxAi"}</div>${fmt(m.t)}<div class="act"><button data-a="copy" data-i="${i}">Copy</button>${m.r==="user"?`<button data-a="edit" data-i="${i}">Edit</button>`:`<button data-a="speak" data-i="${i}">🔊 Read</button><button data-a="regen" data-i="${i}">↻ Regenerate</button>`}</div></div>`).join(""):'<div class="m a"><div class="who">TheMetaxAi</div>Ask me anything — science, business, code, writing, translation or everyday questions.</div>';
+  $("#msgs").scrollTop=1e9;
+}
+async function ask(files=[]){
+  const c=cur();
+  try{
+    const fd=new FormData();
+    fd.append("payload",JSON.stringify({messages:c.msgs.map(m=>({role:m.r,content:m.t}))}));
+    files.forEach(p=>{if(p.file)fd.append("files",p.file,p.name)});
+    const d=await api("chat",fd,true);
+    c.msgs.push({r:"assistant",t:d.reply||d.text||"(empty reply)"});
+  }catch(e){c.msgs.push({r:"assistant",t:apiErr(e,"Chat")})}
+  save();renderChat();
+}
+async function send(){
+  const box=$("#ci");let t=box.value.trim();if(!t&&!pend.length)return;
+  const c=cur();
+  if(editIdx!==null){c.msgs=c.msgs.slice(0,editIdx);editIdx=null}
+  const files=pend.slice();
+  let full=t;files.forEach(p=>{full+=`\n\n[Attached: ${p.name}]`+(p.text?"\n```\n"+p.text.slice(0,6000)+"\n```":"")});
+  c.msgs.push({r:"user",t:full});if(c.title==="New chat")c.title=(t||files[0].name).slice(0,40);
+  box.value="";pend=[];$("#att").textContent="";save();renderChat();await ask(files);
+}
+$("#send").onclick=send;$("#ci").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}};
+$("#newChat").onclick=newChat;$("#cs").oninput=renderList;$("#hist").onclick=()=>$("#cl").classList.toggle("open");
+$("#clist").onclick=e=>{const d=e.target.closest("[data-del]");if(d){if(confirm("Delete this chat?")){S.chats=S.chats.filter(c=>c.id!==d.dataset.del);S.cur=S.chats[0]?.id||null;save();renderChat()}return}const i=e.target.closest(".ci");if(i){S.cur=i.dataset.id;$("#cl").classList.remove("open");renderChat()}};
+$("#ren").onclick=()=>{const n=prompt("Rename chat",cur().title);if(n&&n.trim()){cur().title=n.trim().slice(0,60);save();renderChat()}};
+$("#clr").onclick=()=>{if(confirm("Clear this conversation?")){cur().msgs=[];save();renderChat()}};
+$("#exp").onclick=()=>dl((cur().title||"chat")+".md",`# ${cur().title}\n\n`+cur().msgs.map(m=>`**${m.r}:** ${m.t}`).join("\n\n"));
+$("#msgs").onclick=e=>{
+  const b=e.target.closest("[data-a]");if(!b)return;const i=+b.dataset.i,c=cur(),m=c.msgs[i];
+  if(b.dataset.a==="copy")copy(m.t);
+  if(b.dataset.a==="speak"){speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(m.t.replace(/```[\s\S]*?```/g," code block ")))}
+  if(b.dataset.a==="edit"){$("#ci").value=m.t;editIdx=i;$("#ci").focus();toast("Edit the message and press Send")}
+  if(b.dataset.a==="regen"){c.msgs=c.msgs.slice(0,i);save();renderChat();ask()}
+};
+function attach(f,img){
+  if(!okFile(f,img?10:5,img?/image/:/\.(txt|csv|json|md|pdf|docx)/i))return;
+  const p={name:f.name,text:"",file:f};
+  const done=()=>{pend.push(p);$("#att").textContent="Attached: "+pend.map(x=>x.name).join(", ");S.files.unshift(f.name);save()};
+  if(!img&&/\.(txt|csv|json|md)$/i.test(f.name)){const r=new FileReader();r.onload=()=>{p.text=r.result;done()};r.readAsText(f)}else done();
+}
+$("#cf").onchange=e=>attach(e.target.files[0],false);$("#cimg").onchange=e=>attach(e.target.files[0],true);
+$("#mic").onclick=()=>{
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return toast("Voice input is not supported in this browser");
+  const r=new R();r.onresult=e=>{$("#ci").value+=e.results[0][0].transcript};r.onerror=()=>toast("Voice input failed");r.start();toast("Listening…");
+};
+
+/* ---------- image generator ---------- */
+["Realistic","Cinematic","Product photography","Portrait","Landscape","Anime","3D","Illustration","Luxury","Logo","Poster","Wallpaper","Social media"].forEach(s=>$("#ist").add(new Option(s,s)));
+function gal(){$("#gal").innerHTML=S.gallery.map((g,i)=>`<div><img src="${esc(g.url)}" alt="${esc(g.prompt)}"><button class="btn g sm" data-dl="${i}">Download</button></div>`).join("");$("#galn").style.display=S.gallery.length?"none":"block"}
+async function gen(){
+  const p=$("#ip").value.trim();if(!p)return toast("Enter a prompt first");
+  S.prompts.unshift(p);S.prompts=S.prompts.slice(0,50);save();$("#ibar").style.width="40%";$("#imsg").textContent="Sending to image API…";
+  try{const d=await api("image",{prompt:p,negative:$("#ineg").value,style:$("#ist").value,aspect:$("#iar").value,size:+$("#isz").value,count:+$("#in").value});
+    (d.images||[]).filter(u=>/^(https:|data:image\/)/.test(u)).forEach(u=>S.gallery.unshift({url:u,prompt:p}));S.gallery=S.gallery.slice(0,30);save();gal();$("#imsg").textContent="Done.";}
+  catch(e){$("#imsg").textContent=apiErr(e,"Image generation")}
+  $("#ibar").style.width="0";
+}
+$("#igen").onclick=gen;$("#iregen").onclick=gen;
+$("#gal").onclick=e=>{const b=e.target.closest("[data-dl]");if(b)window.open(S.gallery[b.dataset.dl].url,"_blank","noopener")};
+
+/* ---------- image editor (canvas, client-side) ---------- */
+const cv=$("#cv"),cx=cv.getContext("2d");
+const D={b:100,c:100,s:100,e:0,bl:0,rot:0,fh:0,fv:0,fx:"",sc:100,tx:"",wm:""};
+let E={img:null,s:{...D},h:[],i:-1,before:false,logo:null};
+const SL=[["b","Brightness",0,200],["c","Contrast",0,200],["s","Saturation",0,300],["e","Exposure",-50,50],["bl","Blur",0,10]];
+$("#sl").innerHTML=SL.map(s=>`<label>${s[1]}</label><input type="range" data-k="${s[0]}" min="${s[2]}" max="${s[3]}" value="${D[s[0]]}">`).join("");
+function draw(){
+  if(!E.img)return;const s=E.before?D:E.s,k=s.sc/100,w=E.img.width*k,h=E.img.height*k,sw=s.rot%180!==0;
+  cv.width=sw?h:w;cv.height=sw?w:h;cx.save();
+  cx.filter=`brightness(${s.b*(1+s.e/100)}%) contrast(${s.c}%) saturate(${s.s}%) blur(${s.bl}px) ${s.fx}`;
+  cx.translate(cv.width/2,cv.height/2);cx.rotate(s.rot*Math.PI/180);cx.scale(s.fh?-1:1,s.fv?-1:1);cx.drawImage(E.img,-w/2,-h/2,w,h);cx.restore();
+  cx.filter="none";const f=Math.max(16,cv.width/18);
+  if(s.tx){cx.font=`bold ${f}px ${getComputedStyle(document.body).fontFamily}`;cx.fillStyle="#d4af37";cx.textAlign="center";cx.fillText(s.tx,cv.width/2,cv.height/2)}
+  if(s.wm){cx.font=`${f/2}px sans-serif`;cx.fillStyle="rgba(255,255,255,.6)";cx.textAlign="right";cx.fillText(s.wm,cv.width-12,cv.height-12)}
+  if(E.logo&&!E.before){const lw=cv.width/6;cx.drawImage(E.logo,12,12,lw,lw*E.logo.height/E.logo.width)}
+  zoom();
+}
+const zoom=()=>{cv.style.width=cv.width*$("#ezoom").value/100+"px";cv.style.maxWidth="none"};
+function push(){E.h=E.h.slice(0,E.i+1);E.h.push(JSON.stringify(E.s));E.i=E.h.length-1}
+function setS(j){E.s=JSON.parse(j);$$("#sl input").forEach(i=>i.value=E.s[i.dataset.k]);$("#efx").value=E.s.fx;$("#esc").value=E.s.sc;$("#etx").value=E.s.tx;$("#ewm").value=E.s.wm;draw()}
+function loadImg(src,keep){const im=new Image();im.onload=()=>{E.img=im;if(!keep){E.s={...D};E.h=[];E.i=-1;push()}draw()};im.src=src}
+$("#ef").onchange=e=>{const f=e.target.files[0];if(!okFile(f,15,/image\/(png|jpeg|webp)/))return;S.files.unshift(f.name);save();const r=new FileReader();r.onload=()=>loadImg(r.result);r.readAsDataURL(f)};
+$("#sl").oninput=e=>{E.s[e.target.dataset.k]=+e.target.value;draw()};$("#sl").onchange=push;
+$("#efx").onchange=e=>{E.s.fx=e.target.value;draw();push()};
+$("#esc").oninput=e=>{E.s.sc=+e.target.value;draw()};$("#esc").onchange=push;
+$("#etx").oninput=e=>{E.s.tx=e.target.value.slice(0,80);draw()};$("#etx").onchange=push;
+$("#ewm").oninput=e=>{E.s.wm=e.target.value.slice(0,60);draw()};$("#ewm").onchange=push;
+$("#elogo").onchange=e=>{const f=e.target.files[0];if(!okFile(f,5,/image/))return;const r=new FileReader();r.onload=()=>{const l=new Image();l.onload=()=>{E.logo=l;draw()};l.src=r.result};r.readAsDataURL(f)};
+$("#v-edit").addEventListener("click",e=>{const t=e.target.dataset.t;if(!t||!E.img)return;if(t==="rot")E.s.rot=(E.s.rot+90)%360;else E.s[t]=E.s[t]?0:1;draw();push()});
+$("#eundo").onclick=()=>{if(E.i>0)setS(E.h[--E.i])};$("#eredo").onclick=()=>{if(E.i<E.h.length-1)setS(E.h[++E.i])};
+$("#ereset").onclick=()=>{E.logo=null;setS(JSON.stringify(D));push()};
+$("#ezoom").oninput=zoom;
+const bf=v=>()=>{E.before=v;draw()};$("#ebefore").onmousedown=bf(true);$("#ebefore").ontouchstart=bf(true);["onmouseup","onmouseleave","ontouchend"].forEach(k=>$("#ebefore")[k]=bf(false));
+$("#edl").onclick=()=>E.img?cv.toBlob(b=>dl("themetaxai-edit.png",b)):toast("Upload an image first");
+$("#esave").onclick=()=>{if(!E.img)return toast("Upload an image first");try{S.gallery.unshift({url:cv.toDataURL("image/jpeg",.6),prompt:"Edited image"});S.gallery=S.gallery.slice(0,12);save();toast("Saved to gallery")}catch(e){toast("Could not save")}};
+["Remove background","Change background","Remove object","Add object","Replace object","Enhance","Upscale","Sharpen","Restore","Generate variations"].forEach(op=>{const b=document.createElement("button");b.className="btn g sm";b.textContent=op;b.onclick=async()=>{
+  if(!E.img)return toast("Upload an image first");toast("Sending to editing API…");
+  try{const d=await api("edit",{op,prompt:$("#etx").value,image:cv.toDataURL("image/png")});if(/^(https:|data:image\/)/.test(d.image||""))loadImg(d.image,false);else throw new Error("No image in reply")}catch(x){toast(apiErr(x,"Image editing"))}};$("#eai").append(b)});
+
+/* ---------- video editor ---------- */
+const vp=$("#vp");let VF=null;
+$("#vf").onchange=e=>{const f=e.target.files[0];if(!okFile(f,500,/video/))return;VF=f;vp.src=URL.createObjectURL(f);S.videos.unshift(f.name);save()};
+vp.onloadedmetadata=()=>{$("#vin").max=$("#vout").max=vp.duration;$("#vin").value=0;$("#vout").value=vp.duration;tl();$("#vinfo").textContent=`${VF.name} · ${(VF.size/1048576).toFixed(1)} MB · ${vp.duration.toFixed(1)}s · ${vp.videoWidth}×${vp.videoHeight}`};
+const tl=()=>$("#vtl").textContent=`Trim: ${(+$("#vin").value).toFixed(1)}s → ${(+$("#vout").value).toFixed(1)}s`;
+$("#vin").oninput=$("#vout").oninput=tl;
+$("#vspd").onchange=()=>vp.playbackRate=+$("#vspd").value;
+$("#vprev").onclick=()=>{if(!VF)return;vp.currentTime=+$("#vin").value;vp.play();const o=+$("#vout").value;vp.ontimeupdate=()=>{if(vp.currentTime>=o){vp.pause();vp.ontimeupdate=null}}};
+$("#vframe").onclick=()=>{if(!VF)return toast("Upload a video first");const c=document.createElement("canvas");c.width=vp.videoWidth;c.height=vp.videoHeight;c.getContext("2d").drawImage(vp,0,0);c.toBlob(b=>dl("frame.png",b))};
+["Trim","Cut","Merge","Resize","Compress","Convert format","Change resolution","Change aspect ratio","Change speed","Extract audio","Extract frames","Add text","Add watermark","Add subtitles","Generate captions","Create thumbnail"].forEach(op=>{const b=document.createElement("button");b.className="btn g sm";b.textContent=op;b.onclick=async()=>{
+  if(!VF)return toast("Upload a video first");
+  const fd=new FormData();fd.append("video",VF);fd.append("op",op);fd.append("start",$("#vin").value);fd.append("end",$("#vout").value);fd.append("resolution",$("#vres").value);fd.append("aspect",$("#var").value);fd.append("format",$("#vfmt").value);fd.append("text",$("#vtxt").value);fd.append("speed",$("#vspd").value);
+  $("#vbar").style.width="50%";$("#vmsg").textContent="Uploading to video API…";
+  try{const d=await api("video",fd,true);if(!/^https:/.test(d.url||""))throw new Error("No output URL");$("#vdl").href=d.url;$("#vdl").style.display="inline-block";$("#vdl").target="_blank";$("#vdl").rel="noopener";$("#vmsg").textContent="Done.";$("#vbar").style.width="100%"}
+  catch(x){$("#vmsg").textContent=apiErr(x,"Video processing");$("#vbar").style.width="0"}};$("#vops").append(b)});
+
+/* ---------- coding assistant ---------- */
+["HTML","CSS","JavaScript","Python","PHP","Java","C","C++","C#","SQL","JSON","React","Node.js"].forEach(l=>{$("#clang").add(new Option(l,l));$("#cto").add(new Option(l,l))});
+["Generate","Explain","Debug","Fix errors","Optimize","Convert","Add features","Create website","Create application"].forEach(a=>$("#cact").add(new Option(a,a)));
+$("#crun").onclick=async()=>{
+  $("#cout").textContent="Working…";
+  try{const d=await api("chat",{messages:[{role:"user",content:`${$("#cact").value} (${$("#clang").value}${$("#cact").value==="Convert"?" → "+$("#cto").value:""}). ${$("#cins").value}\n\n${$("#ccode").value}`}]});$("#cout").innerHTML=fmt(d.reply||d.text||"")}
+  catch(e){$("#cout").textContent=apiErr(e,"Chat")}
+};
+$("#ccopy").onclick=()=>copy($("#ccode").value);
+$("#cdl").onclick=()=>{const ext={HTML:"html",CSS:"css",JavaScript:"js",Python:"py",PHP:"php",Java:"java",C:"c","C++":"cpp","C#":"cs",SQL:"sql",JSON:"json",React:"jsx","Node.js":"js"}[$("#clang").value];dl("code."+ext,$("#ccode").value)};
+$("#cprev").onclick=()=>{const f=$("#cframe"),l=$("#clang").value,c=$("#ccode").value;f.style.display="block";f.srcdoc=l==="HTML"?c:l==="CSS"?`<style>${c}</style><h1>Heading</h1><p>Paragraph</p><button>Button</button>`:l==="JavaScript"?`<script>${c.replace(/<\/script/gi,"<\\/script")}<\/script>`:"<p>Preview supports HTML, CSS and JavaScript.</p>"};
+
+/* ---------- file analyzer ---------- */
+let FA={name:"",text:""};
+$("#ff").onchange=e=>{
+  const f=e.target.files[0];if(!okFile(f,10,/\.(txt|csv|json|md|pdf|docx)$|image\//i))return;FA={name:f.name,text:"",file:f};S.files.unshift(f.name);save();
+  const info=x=>$("#finfo").textContent=`${f.name} · ${(f.size/1024).toFixed(1)} KB · ${x}`;
+  if(/\.(txt|csv|json|md)$/i.test(f.name)){const r=new FileReader();r.onload=()=>{FA.text=r.result;let x=`${FA.text.split(/\s+/).filter(Boolean).length} words, ${FA.text.split("\n").length} lines`;
+    if(/\.csv$/i.test(f.name)){const rows=FA.text.trim().split("\n");x+=` · ${rows.length-1} rows × ${rows[0].split(",").length} columns`}
+    if(/\.json$/i.test(f.name)){try{const j=JSON.parse(FA.text);x+=" · valid JSON"+(Array.isArray(j)?`, ${j.length} items`:`, keys: ${Object.keys(j).slice(0,8).join(", ")}`)}catch(_){x+=" · invalid JSON"}}info(x)};r.readAsText(f)}
+  else info("will be analyzed by your file API");
+};
+$("#fsr").onclick=()=>{const q=$("#fq").value.toLowerCase();if(!q||!FA.text)return toast("Load a text file and enter a search term");const ls=FA.text.split("\n").map((l,i)=>[i+1,l]).filter(l=>l[1].toLowerCase().includes(q));$("#fout").textContent=`${ls.length} matching lines\n\n`+ls.slice(0,100).map(l=>`${l[0]}: ${l[1].slice(0,200)}`).join("\n")};
+$("#v-file").addEventListener("click",async e=>{const a=e.target.dataset.f;if(!a)return;if(!FA.name)return toast("Upload a file first");
+  $("#fout").textContent="Working…";
+  try{
+    let d;
+    if(FA.file){const fd=new FormData();fd.append("action",a);fd.append("question",$("#fask").value);fd.append("file",FA.file,FA.file.name);d=await api("file",fd,true)}
+    else d=await api("file",{action:a,question:$("#fask").value,name:FA.name,content:FA.text.slice(0,50000)});
+    $("#fout").textContent=d.reply||d.text||""
+  }catch(x){$("#fout").textContent=apiErr(x,"File analysis")}});
+$("#fcopy").onclick=()=>copy($("#fout").textContent);$("#fdl").onclick=()=>dl("themetaxai-results.txt",$("#fout").textContent);
+
+/* ---------- generic text tools ---------- */
+$("#grun").onclick=async()=>{const i=$("#gin"),l=$("#glang");$("#gout").textContent="Working…";
+  try{const d=await api("chat",{messages:[{role:"user",content:(i.dataset.pre||"")+(l?l.value+"\n\n":"")+i.value}]});$("#gout").textContent=d.reply||d.text||""}catch(e){$("#gout").textContent=apiErr(e,"Chat")}};
+$("#gcopy").onclick=()=>copy($("#gout").textContent);$("#gdl").onclick=()=>dl("themetaxai-output.txt",$("#gout").textContent);
+
+/* ---------- API settings ---------- */
+const AL={chat:"Chat AI",image:"Image generation",edit:"Image editing",video:"Video processing",file:"File analysis"};
+$("#apif").innerHTML=Object.entries(AL).map(([k,v])=>`<label>${v} endpoint</label><input data-api="${k}" value="${esc(S.api[k])}" autocomplete="off">`).join("");
+$("#asave").onclick=()=>{let bad=0;$$("#apif input").forEach(i=>{const v=i.value.trim();if(/^\/api\//.test(v)||/^https?:\/\//.test(v))S.api[i.dataset.api]=v;else bad++});save();toast(bad?"Use /api/... or a valid http(s) endpoint":"Endpoints saved")};
+$("#aclear").onclick=()=>{if(confirm("Delete all TheMetaxAi data stored in this browser?")){localStorage.removeItem(KEY);location.reload()}};
+
+/* ---------- init ---------- */
+tools();dash();
+</script>
+</body>
+</html>
